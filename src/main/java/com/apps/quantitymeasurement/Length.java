@@ -9,7 +9,8 @@ public class Length {
 		FEET(12.0), // 1 foot = 12 inches
 		INCHES(1.0), // base unit
 		YARDS(36.0), // 1 yard = 36 inches
-	    CENTIMETERS(0.393701); // 1 cm = 0.393701 inches
+		CENTIMETERS(0.393701); // 1 cm = 0.393701 inches
+
 		private final double conversionFactor;
 
 		LengthUnit(double conversionFactor) {
@@ -22,6 +23,8 @@ public class Length {
 	}
 
 	public Length(double value, LengthUnit unit) {
+		if (!Double.isFinite(value))
+			throw new IllegalArgumentException("Value must be finite");
 		if (unit == null) {
 			throw new IllegalArgumentException("Unit cannot be null");
 		}
@@ -30,14 +33,19 @@ public class Length {
 	}
 
 	private double convertToBaseUnit() {
-		return value * unit.getConversionFactor();
+		double baseValue = value * unit.getConversionFactor();
+		return roundToTwoDecimalPlaces(baseValue);
 	}
 
-	public boolean compare(Length thatLength) {
+	private double roundToTwoDecimalPlaces(double number) {
+		return Math.round(number * 100.0) / 100.0;
+	}
+
+	private boolean compare(Length thatLength) {
 		if (thatLength == null)
 			return false;
 
-		return Double.compare(this.convertToBaseUnit(), thatLength.convertToBaseUnit()) == 0;
+		return this.convertToBaseUnit() == thatLength.convertToBaseUnit();
 	}
 
 	@Override
@@ -61,8 +69,20 @@ public class Length {
 	public int hashCode() {
 		return Double.hashCode(convertToBaseUnit());
 	}
+
+	public Length convertTo(LengthUnit targetUnit) {
+		if (targetUnit == null) {
+			throw new IllegalArgumentException("Target unit cannot be null.");
+		}
+
+		double baseValue = convertToBaseUnit();
+		double convertedValue = baseValue / targetUnit.getConversionFactor();
+
+		return new Length(roundToTwoDecimalPlaces(convertedValue), targetUnit);
+	}
+
 	@Override
 	public String toString() {
-	    return value + " " + unit;
+		return String.format("%.2f %s", value, unit);
 	}
 }
