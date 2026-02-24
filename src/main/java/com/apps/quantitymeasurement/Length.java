@@ -1,7 +1,5 @@
 package com.apps.quantitymeasurement;
 
-import java.util.Objects;
-
 public class Length {
 
 	private final double value;
@@ -19,11 +17,11 @@ public class Length {
 			this.toInches = toInches;
 		}
 
-		public double toBase(double value) {
+		public double toBaseUnit(double value) {
 			return value * toInches;
 		}
 
-		public double fromBase(double baseValue) {
+		public double fromBaseUnit(double baseValue) {
 			return baseValue / toInches;
 		}
 	}
@@ -38,54 +36,52 @@ public class Length {
 		this.unit = unit;
 	}
 
-	private double convertToBaseUnit() {
-		return unit.toBase(value);
+	public double getValue() {
+		return value;
 	}
 
-	private boolean compare(Length thatLength) {
-		return Double.compare(this.convertToBaseUnit(), thatLength.convertToBaseUnit()) == 0;
+	public LengthUnit getUnit() {
+		return unit;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof Length))
-			return false;
-		Length that = (Length) o;
-		return compare(that);
+	public Length add(Length other) {
+		return add(other, this.unit);
 	}
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(convertToBaseUnit());
-	}
-
-	public Length convertTo(LengthUnit targetUnit) {
-		double baseValue = convertToBaseUnit();
-		double convertedValue = convertFromBaseToTargetUnit(baseValue, targetUnit);
-		return new Length(convertedValue, targetUnit);
-	}
-
-	public Length add(Length thatLength) {
-		if (thatLength == null) {
-			throw new IllegalArgumentException("Length to add cannot be null");
+	public Length add(Length other, LengthUnit targetUnit) {
+		if (other == null || targetUnit == null) {
+			throw new IllegalArgumentException("Length or target unit cannot be null");
 		}
+		double resultInTarget = addInTargetUnit(this, other, targetUnit);
 
-		double sumInInches = this.convertToBaseUnit() + thatLength.convertToBaseUnit();
-
-		double resultValue = convertFromBaseToTargetUnit(sumInInches, this.unit);
-
-		return new Length(resultValue, this.unit);
+		return new Length(resultInTarget, targetUnit);
 	}
 
-	private double convertFromBaseToTargetUnit(double lengthInInches, LengthUnit targetUnit) {
-		double converted = targetUnit.fromBase(lengthInInches);
-		return Math.round(converted * 100.0) / 100.0;
+	private static double addInTargetUnit(Length l1, Length l2, LengthUnit targetUnit) {
+
+		double baseSum = l1.unit.toBaseUnit(l1.value) + l2.unit.toBaseUnit(l2.value);
+
+		double result = targetUnit.fromBaseUnit(baseSum);
+
+		return round(result);
+	}
+
+	private static double round(double value) {
+		return Math.round(value * 100.0) / 100.0;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!(obj instanceof Length))
+			return false;
+		Length other = (Length) obj;
+		return Double.compare(value, other.value) == 0 && unit == other.unit;
 	}
 
 	@Override
 	public String toString() {
-		return value + " " + unit;
+		return "Quantity(" + value + ", " + unit + ")";
 	}
 }
