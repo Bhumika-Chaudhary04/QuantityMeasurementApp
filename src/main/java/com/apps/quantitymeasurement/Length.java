@@ -1,5 +1,7 @@
 package com.apps.quantitymeasurement;
 
+import java.util.Objects;
+
 public class Length {
 
 	private final double value;
@@ -11,14 +13,18 @@ public class Length {
 		YARDS(36.0), // 1 yard = 36 inches
 		CENTIMETERS(0.393701); // 1 cm = 0.393701 inches
 
-		private final double conversionFactor;
+		private final double toInches;
 
-		LengthUnit(double conversionFactor) {
-			this.conversionFactor = conversionFactor;
+		LengthUnit(double toInches) {
+			this.toInches = toInches;
 		}
 
-		public double getConversionFactor() {
-			return conversionFactor;
+		public double toBase(double value) {
+			return value * toInches;
+		}
+
+		public double fromBase(double baseValue) {
+			return baseValue / toInches;
 		}
 	}
 
@@ -33,56 +39,53 @@ public class Length {
 	}
 
 	private double convertToBaseUnit() {
-		double baseValue = value * unit.getConversionFactor();
-		return roundToTwoDecimalPlaces(baseValue);
-	}
-
-	private double roundToTwoDecimalPlaces(double number) {
-		return Math.round(number * 100.0) / 100.0;
+		return unit.toBase(value);
 	}
 
 	private boolean compare(Length thatLength) {
-		if (thatLength == null)
-			return false;
-
-		return this.convertToBaseUnit() == thatLength.convertToBaseUnit();
+		return Double.compare(this.convertToBaseUnit(), thatLength.convertToBaseUnit()) == 0;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-
 		if (this == o)
 			return true;
-
-		if (o == null)
+		if (!(o instanceof Length))
 			return false;
-
-		if (getClass() != o.getClass())
-			return false;
-
-		Length thatLength = (Length) o;
-
-		return compare(thatLength);
+		Length that = (Length) o;
+		return compare(that);
 	}
 
 	@Override
 	public int hashCode() {
-		return Double.hashCode(convertToBaseUnit());
+		return Objects.hash(convertToBaseUnit());
 	}
 
 	public Length convertTo(LengthUnit targetUnit) {
-		if (targetUnit == null) {
-			throw new IllegalArgumentException("Target unit cannot be null.");
+		double baseValue = convertToBaseUnit();
+		double convertedValue = convertFromBaseToTargetUnit(baseValue, targetUnit);
+		return new Length(convertedValue, targetUnit);
+	}
+
+	public Length add(Length thatLength) {
+		if (thatLength == null) {
+			throw new IllegalArgumentException("Length to add cannot be null");
 		}
 
-		double baseValue = convertToBaseUnit();
-		double convertedValue = baseValue / targetUnit.getConversionFactor();
+		double sumInInches = this.convertToBaseUnit() + thatLength.convertToBaseUnit();
 
-		return new Length(roundToTwoDecimalPlaces(convertedValue), targetUnit);
+		double resultValue = convertFromBaseToTargetUnit(sumInInches, this.unit);
+
+		return new Length(resultValue, this.unit);
+	}
+
+	private double convertFromBaseToTargetUnit(double lengthInInches, LengthUnit targetUnit) {
+		double converted = targetUnit.fromBase(lengthInInches);
+		return Math.round(converted * 100.0) / 100.0;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("%.2f %s", value, unit);
+		return value + " " + unit;
 	}
 }
