@@ -5,27 +5,6 @@ public class Length {
 	private final double value;
 	private final LengthUnit unit;
 
-	public enum LengthUnit {
-		FEET(12.0), // 1 foot = 12 inches
-		INCHES(1.0), // base unit
-		YARDS(36.0), // 1 yard = 36 inches
-		CENTIMETERS(0.393701); // 1 cm = 0.393701 inches
-
-		private final double toInches;
-
-		LengthUnit(double toInches) {
-			this.toInches = toInches;
-		}
-
-		public double toBaseUnit(double value) {
-			return value * toInches;
-		}
-
-		public double fromBaseUnit(double baseValue) {
-			return baseValue / toInches;
-		}
-	}
-
 	public Length(double value, LengthUnit unit) {
 		if (!Double.isFinite(value))
 			throw new IllegalArgumentException("Value must be finite");
@@ -44,40 +23,48 @@ public class Length {
 		return unit;
 	}
 
+	// Convert to another unit
+	public Length convertTo(LengthUnit targetUnit) {
+		if (targetUnit == null)
+			throw new IllegalArgumentException("Target unit cannot be null");
+
+		double baseValue = unit.convertToBaseUnit(value);
+		double converted = targetUnit.convertFromBaseUnit(baseValue);
+
+		return new Length(converted, targetUnit);
+	}
+
+	// Add (default result in current unit)
 	public Length add(Length other) {
 		return add(other, this.unit);
 	}
 
+	// Add with target unit
 	public Length add(Length other, LengthUnit targetUnit) {
-		if (other == null || targetUnit == null) {
-			throw new IllegalArgumentException("Length or target unit cannot be null");
-		}
-		double resultInTarget = addInTargetUnit(this, other, targetUnit);
+		if (other == null || targetUnit == null)
+			throw new IllegalArgumentException("Invalid input");
 
-		return new Length(resultInTarget, targetUnit);
+		double baseSum = this.unit.convertToBaseUnit(this.value) + other.unit.convertToBaseUnit(other.value);
+
+		double finalValue = targetUnit.convertFromBaseUnit(baseSum);
+
+		return new Length(finalValue, targetUnit);
 	}
 
-	private static double addInTargetUnit(Length l1, Length l2, LengthUnit targetUnit) {
-
-		double baseSum = l1.unit.toBaseUnit(l1.value) + l2.unit.toBaseUnit(l2.value);
-
-		double result = targetUnit.fromBaseUnit(baseSum);
-
-		return round(result);
-	}
-
-	private static double round(double value) {
-		return Math.round(value * 100.0) / 100.0;
-	}
-
+	// Equality based on base unit (INCHES)
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
 		if (!(obj instanceof Length))
 			return false;
+
 		Length other = (Length) obj;
-		return Double.compare(value, other.value) == 0 && unit == other.unit;
+
+		double thisBase = this.unit.convertToBaseUnit(this.value);
+		double otherBase = other.unit.convertToBaseUnit(other.value);
+
+		return Double.compare(thisBase, otherBase) == 0;
 	}
 
 	@Override
