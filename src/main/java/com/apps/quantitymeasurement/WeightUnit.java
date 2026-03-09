@@ -1,15 +1,15 @@
 package com.apps.quantitymeasurement;
 
-public enum LengthUnit {
 
-    INCHES(1.0),
-    FEET(12.0),
-    YARDS(36.0),
-    CENTIMETERS(0.393701);
+public enum WeightUnit {
+
+    KILOGRAM(1.0),
+    GRAM(0.001),
+    POUND(0.453592);
 
     private final double conversionFactor;
 
-    LengthUnit(double conversionFactor) {
+    WeightUnit(double conversionFactor) {
         this.conversionFactor = conversionFactor;
     }
 
@@ -17,12 +17,12 @@ public enum LengthUnit {
         return conversionFactor;
     }
 
-    // convert to base unit (INCHES)
+    // convert to base unit (kilogram)
     public double convertToBaseUnit(double value) {
         return value * conversionFactor;
     }
 
-    // convert from base unit (INCHES)
+    // convert from base unit (kilogram)
     public double convertFromBaseUnit(double baseValue) {
         return baseValue / conversionFactor;
     }
