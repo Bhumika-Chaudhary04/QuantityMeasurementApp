@@ -2,15 +2,20 @@ package com.apps.quantitymeasurement;
 
 public interface IMeasurable {
 
-    double getConversionFactor();
+	// Convert to base unit
+	double convertToBaseUnit(double value);
 
-    default double convertToBaseUnit(double value) {
-        return value * getConversionFactor();
-    }
+	// Convert from base unit
+	double convertFromBaseUnit(double value);
 
-    default double convertFromBaseUnit(double baseValue) {
-        return baseValue / getConversionFactor();
-    }
+	// Lambda to indicate if arithmetic is supported
+	SupportsArithmetic supportsArithmetic = () -> true;
 
-    String getUnitName();
+	default boolean supportsArithmetic() {
+		return supportsArithmetic.isSupported();
+	}
+
+	default void validateOperationSupport(String operation) {
+		// Default: do nothing (all operations supported)
+	}
 }

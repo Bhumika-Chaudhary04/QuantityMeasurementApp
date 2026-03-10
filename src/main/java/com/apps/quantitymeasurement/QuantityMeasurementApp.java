@@ -6,8 +6,8 @@ public class QuantityMeasurementApp {
 		System.out.println(q1 + " equals " + q2 + " : " + q1.equals(q2));
 	}
 
-	public static <U extends IMeasurable> void demonstrateConversion(Quantity<U> quantity, U targetUnit) {
-		System.out.println(quantity + " = " + quantity.convertTo(targetUnit));
+	public static <U extends IMeasurable> void demonstrateConversion(Quantity<U> q, U targetUnit) {
+		System.out.println(q + " = " + q.convertTo(targetUnit));
 	}
 
 	public static <U extends IMeasurable> void demonstrateAddition(Quantity<U> q1, Quantity<U> q2, U targetUnit) {
@@ -24,35 +24,41 @@ public class QuantityMeasurementApp {
 
 	public static void main(String[] args) {
 
+		// Length
 		Quantity<LengthUnit> feet = new Quantity<>(1.0, LengthUnit.FEET);
 		Quantity<LengthUnit> inches = new Quantity<>(12.0, LengthUnit.INCHES);
-
 		demonstrateEquality(feet, inches);
 		demonstrateConversion(feet, LengthUnit.INCHES);
 		demonstrateAddition(feet, inches, LengthUnit.FEET);
 
+		// Weight
 		Quantity<WeightUnit> kg = new Quantity<>(1.0, WeightUnit.KILOGRAM);
 		Quantity<WeightUnit> gram = new Quantity<>(1000.0, WeightUnit.GRAM);
-
 		demonstrateEquality(kg, gram);
 		demonstrateConversion(kg, WeightUnit.GRAM);
 		demonstrateAddition(kg, gram, WeightUnit.KILOGRAM);
 
+		// Volume
 		Quantity<VolumeUnit> litre = new Quantity<>(1.0, VolumeUnit.LITRE);
-		Quantity<VolumeUnit> millilitre = new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
+		Quantity<VolumeUnit> ml = new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
 		Quantity<VolumeUnit> gallon = new Quantity<>(1.0, VolumeUnit.GALLON);
-
-		demonstrateEquality(litre, millilitre);
+		demonstrateEquality(litre, ml);
 		demonstrateConversion(litre, VolumeUnit.MILLILITRE);
 		demonstrateConversion(gallon, VolumeUnit.LITRE);
-
-		demonstrateAddition(litre, millilitre, VolumeUnit.LITRE);
+		demonstrateAddition(litre, ml, VolumeUnit.LITRE);
 		demonstrateAddition(litre, gallon, VolumeUnit.MILLILITRE);
 
-		Quantity<LengthUnit> length1 = new Quantity<>(10.0, LengthUnit.FEET);
-		Quantity<LengthUnit> length2 = new Quantity<>(6.0, LengthUnit.INCHES);
+		// Temperature
+		Quantity<TemperatureUnit> tempC = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
+		Quantity<TemperatureUnit> tempF = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
+		demonstrateEquality(tempC, tempF);
+		demonstrateConversion(tempC, TemperatureUnit.FAHRENHEIT);
 
-		demonstrateSubtraction(length1, length2, LengthUnit.FEET);
-		demonstrateDivision(length1, new Quantity<>(2.0, LengthUnit.FEET));
+		// Attempt unsupported arithmetic
+		try {
+			tempC.add(new Quantity<>(50.0, TemperatureUnit.CELSIUS));
+		} catch (UnsupportedOperationException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 }
