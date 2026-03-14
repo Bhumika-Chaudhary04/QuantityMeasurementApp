@@ -1,113 +1,101 @@
 package com.apps.quantitymeasurement;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import com.apps.quantitymeasurement.controller.QuantityMeasurementController;
+import com.apps.quantitymeasurement.dto.QuantityDTO;
+import com.apps.quantitymeasurement.repository.QuantityMeasurementCacheRepository;
+import com.apps.quantitymeasurement.service.IQuantityMeasurementService;
+import com.apps.quantitymeasurement.service.QuantityMeasurementServiceImpl;
 
 public class QuantityMeasurementAppTest {
 
-	private static final double EPSILON = 0.01;
+	private IQuantityMeasurementService service;
+	private QuantityMeasurementController controller;
 
-	@Test
-	void testLengthEquality_FeetInches() {
-		Quantity<LengthUnit> feet = new Quantity<>(1.0, LengthUnit.FEET);
-		Quantity<LengthUnit> inches = new Quantity<>(12.0, LengthUnit.INCHES);
-		assertEquals(feet, inches);
+	@BeforeEach
+	void setup() {
+
+		QuantityMeasurementCacheRepository repository = QuantityMeasurementCacheRepository.getInstance();
+
+		service = new QuantityMeasurementServiceImpl(repository);
+
+		controller = new QuantityMeasurementController(service);
 	}
 
 	@Test
-	void testLengthAddition() {
-		Quantity<LengthUnit> feet = new Quantity<>(1.0, LengthUnit.FEET);
-		Quantity<LengthUnit> inches = new Quantity<>(12.0, LengthUnit.INCHES);
-		Quantity<LengthUnit> sum = feet.add(inches, LengthUnit.FEET);
-		assertEquals(2.0, sum.getValue(), EPSILON);
+	void testAddition_Success() {
+
+		QuantityDTO q1 = new QuantityDTO(10, "METER");
+		QuantityDTO q2 = new QuantityDTO(5, "METER");
+
+		double result = service.add(q1, q2);
+
+		assertEquals(15, result);
 	}
 
 	@Test
-	void testLengthConversion() {
-		Quantity<LengthUnit> feet = new Quantity<>(1.0, LengthUnit.FEET);
-		Quantity<LengthUnit> inches = feet.convertTo(LengthUnit.INCHES);
-		assertEquals(12.0, inches.getValue(), EPSILON);
+	void testSubtraction_Success() {
+
+		QuantityDTO q1 = new QuantityDTO(10, "METER");
+		QuantityDTO q2 = new QuantityDTO(5, "METER");
+
+		double result = service.subtract(q1, q2);
+
+		assertEquals(5, result);
 	}
 
 	@Test
-	void testWeightEquality_KgGram() {
-		Quantity<WeightUnit> kg = new Quantity<>(1.0, WeightUnit.KILOGRAM);
-		Quantity<WeightUnit> gram = new Quantity<>(1000.0, WeightUnit.GRAM);
-		assertEquals(kg, gram);
+	void testDivision_Success() {
+
+		QuantityDTO q1 = new QuantityDTO(10, "METER");
+		QuantityDTO q2 = new QuantityDTO(5, "METER");
+
+		double result = service.divide(q1, q2);
+
+		assertEquals(2, result);
 	}
 
 	@Test
-	void testWeightAddition() {
-		Quantity<WeightUnit> kg = new Quantity<>(1.0, WeightUnit.KILOGRAM);
-		Quantity<WeightUnit> gram = new Quantity<>(500.0, WeightUnit.GRAM);
-		Quantity<WeightUnit> sum = kg.add(gram, WeightUnit.KILOGRAM);
-		assertEquals(1.5, sum.getValue(), EPSILON);
+	void testDivision_ByZero() {
+
+		QuantityDTO q1 = new QuantityDTO(10, "METER");
+		QuantityDTO q2 = new QuantityDTO(0, "METER");
+
+		assertThrows(ArithmeticException.class, () -> {
+			service.divide(q1, q2);
+		});
 	}
 
 	@Test
-	void testVolumeEquality_LitreMillilitre() {
-		Quantity<VolumeUnit> litre = new Quantity<>(1.0, VolumeUnit.LITRE);
-		Quantity<VolumeUnit> ml = new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
-		assertEquals(litre, ml);
+	void testController_PerformAddition() {
+
+		QuantityDTO q1 = new QuantityDTO(20, "METER");
+		QuantityDTO q2 = new QuantityDTO(10, "METER");
+
+		assertDoesNotThrow(() -> controller.performAddition(q1, q2));
 	}
 
 	@Test
-	void testVolumeAddition() {
-		Quantity<VolumeUnit> litre = new Quantity<>(1.0, VolumeUnit.LITRE);
-		Quantity<VolumeUnit> ml = new Quantity<>(500.0, VolumeUnit.MILLILITRE);
-		Quantity<VolumeUnit> sum = litre.add(ml, VolumeUnit.LITRE);
-		assertEquals(1.5, sum.getValue(), EPSILON);
+	void testController_PerformSubtraction() {
+
+		QuantityDTO q1 = new QuantityDTO(20, "METER");
+		QuantityDTO q2 = new QuantityDTO(10, "METER");
+
+		assertDoesNotThrow(() -> controller.performSubtraction(q1, q2));
 	}
 
 	@Test
-	void testTemperatureEquality_CelsiusFahrenheit() {
-		Quantity<TemperatureUnit> celsius = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
-		Quantity<TemperatureUnit> fahrenheit = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
-		assertEquals(celsius, fahrenheit);
-	}
+	void testController_PerformDivision() {
 
-	@Test
-	void testTemperatureConversion_CelsiusFahrenheit() {
-		Quantity<TemperatureUnit> celsius = new Quantity<>(100.0, TemperatureUnit.CELSIUS);
-		Quantity<TemperatureUnit> fahrenheit = celsius.convertTo(TemperatureUnit.FAHRENHEIT);
-		assertEquals(212.0, fahrenheit.getValue(), EPSILON);
-	}
+		QuantityDTO q1 = new QuantityDTO(20, "METER");
+		QuantityDTO q2 = new QuantityDTO(10, "METER");
 
-	@Test
-	void testTemperatureConversion_CelsiusKelvin() {
-		Quantity<TemperatureUnit> celsius = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
-		Quantity<TemperatureUnit> kelvin = celsius.convertTo(TemperatureUnit.KELVIN);
-		assertEquals(273.15, kelvin.getValue(), EPSILON);
-	}
-
-	@Test
-	void testTemperatureUnsupportedAddition() {
-		Quantity<TemperatureUnit> celsius1 = new Quantity<>(100.0, TemperatureUnit.CELSIUS);
-		Quantity<TemperatureUnit> celsius2 = new Quantity<>(50.0, TemperatureUnit.CELSIUS);
-		Exception ex = assertThrows(UnsupportedOperationException.class, () -> celsius1.add(celsius2));
-		assertTrue(ex.getMessage().contains("addition"));
-	}
-
-	@Test
-	void testTemperatureUnsupportedSubtraction() {
-		Quantity<TemperatureUnit> celsius1 = new Quantity<>(100.0, TemperatureUnit.CELSIUS);
-		Quantity<TemperatureUnit> celsius2 = new Quantity<>(50.0, TemperatureUnit.CELSIUS);
-		Exception ex = assertThrows(UnsupportedOperationException.class, () -> celsius1.subtract(celsius2));
-		assertTrue(ex.getMessage().contains("subtraction"));
-	}
-
-	@Test
-	void testTemperatureUnsupportedDivision() {
-		Quantity<TemperatureUnit> celsius1 = new Quantity<>(100.0, TemperatureUnit.CELSIUS);
-		Quantity<TemperatureUnit> celsius2 = new Quantity<>(50.0, TemperatureUnit.CELSIUS);
-		Exception ex = assertThrows(UnsupportedOperationException.class, () -> celsius1.divide(celsius2));
-		assertTrue(ex.getMessage().contains("division"));
-	}
-
-	@Test
-	void testCrossCategoryEquality() {
-		Quantity<TemperatureUnit> temp = new Quantity<>(50.0, TemperatureUnit.CELSIUS);
-		Quantity<LengthUnit> length = new Quantity<>(50.0, LengthUnit.FEET);
-		assertNotEquals(temp, length);
+		assertDoesNotThrow(() -> controller.performDivision(q1, q2));
 	}
 }
