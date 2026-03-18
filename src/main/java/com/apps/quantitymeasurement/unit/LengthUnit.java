@@ -1,4 +1,4 @@
-package com.apps.quantitymeasurement.units;
+package com.apps.quantitymeasurement.unit;
 
 public enum LengthUnit {
 

@@ -1,6 +1,6 @@
-package com.apps.quantitymeasurement.utils;
+package com.apps.quantitymeasurement.util;
 
-import com.apps.quantitymeasurement.units.LengthUnit;
+import com.apps.quantitymeasurement.unit.LengthUnit;
 
 public class QuantityConverter {
 

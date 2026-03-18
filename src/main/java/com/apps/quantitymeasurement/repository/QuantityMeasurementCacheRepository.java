@@ -9,27 +9,37 @@ public class QuantityMeasurementCacheRepository implements IQuantityMeasurementR
 
 	private static QuantityMeasurementCacheRepository instance;
 
-	private List<QuantityMeasurementEntity> cache = new ArrayList<>();
+	private final List<QuantityMeasurementEntity> cache = new ArrayList<>();
 
 	private QuantityMeasurementCacheRepository() {
 	}
 
 	public static QuantityMeasurementCacheRepository getInstance() {
-
 		if (instance == null) {
 			instance = new QuantityMeasurementCacheRepository();
 		}
-
 		return instance;
 	}
 
 	@Override
 	public void save(QuantityMeasurementEntity entity) {
-		cache.add(entity);
+		if (entity != null) {
+			cache.add(entity);
+		}
 	}
 
 	@Override
-	public List<QuantityMeasurementEntity> findAll() {
-		return cache;
+	public List<QuantityMeasurementEntity> getAll() {
+		return new ArrayList<>(cache);
+	}
+
+	@Override
+	public int count() {
+		return cache.size();
+	}
+
+	@Override
+	public void deleteAll() {
+		cache.clear();
 	}
 }
