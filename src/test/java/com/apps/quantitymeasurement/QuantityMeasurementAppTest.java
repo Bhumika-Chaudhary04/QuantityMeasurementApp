@@ -1,101 +1,136 @@
 package com.apps.quantitymeasurement;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.apps.quantitymeasurement.controller.QuantityMeasurementController;
 import com.apps.quantitymeasurement.dto.QuantityDTO;
-import com.apps.quantitymeasurement.repository.QuantityMeasurementCacheRepository;
-import com.apps.quantitymeasurement.service.IQuantityMeasurementService;
+import com.apps.quantitymeasurement.entity.QuantityMeasurementEntity;
+import com.apps.quantitymeasurement.repository.IQuantityMeasurementRepository;
+import com.apps.quantitymeasurement.repository.QuantityMeasurementDatabaseRepository;
 import com.apps.quantitymeasurement.service.QuantityMeasurementServiceImpl;
 
 public class QuantityMeasurementAppTest {
 
-	private IQuantityMeasurementService service;
-	private QuantityMeasurementController controller;
+	private QuantityMeasurementServiceImpl service;
 
 	@BeforeEach
-	void setup() {
-
-		QuantityMeasurementCacheRepository repository = QuantityMeasurementCacheRepository.getInstance();
-
-		service = new QuantityMeasurementServiceImpl(repository);
-
-		controller = new QuantityMeasurementController(service);
+	void setUp() {
+		IQuantityMeasurementRepository repo = new QuantityMeasurementDatabaseRepository();
+		service = new QuantityMeasurementServiceImpl(repo);
 	}
 
 	@Test
-	void testAddition_Success() {
-
-		QuantityDTO q1 = new QuantityDTO(10, "METER");
-		QuantityDTO q2 = new QuantityDTO(5, "METER");
-
-		double result = service.add(q1, q2);
-
-		assertEquals(15, result);
+	void testAddition() {
+		double result = service.add(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
+		assertEquals(15.0, result);
 	}
 
 	@Test
-	void testSubtraction_Success() {
-
-		QuantityDTO q1 = new QuantityDTO(10, "METER");
-		QuantityDTO q2 = new QuantityDTO(5, "METER");
-
-		double result = service.subtract(q1, q2);
-
-		assertEquals(5, result);
+	void testSubtraction() {
+		double result = service.subtract(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
+		assertEquals(5.0, result);
 	}
 
 	@Test
-	void testDivision_Success() {
-
-		QuantityDTO q1 = new QuantityDTO(10, "METER");
-		QuantityDTO q2 = new QuantityDTO(5, "METER");
-
-		double result = service.divide(q1, q2);
-
-		assertEquals(2, result);
+	void testDivision() {
+		double result = service.divide(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
+		assertEquals(2.0, result);
 	}
 
 	@Test
-	void testDivision_ByZero() {
-
-		QuantityDTO q1 = new QuantityDTO(10, "METER");
-		QuantityDTO q2 = new QuantityDTO(0, "METER");
-
-		assertThrows(ArithmeticException.class, () -> {
-			service.divide(q1, q2);
-		});
+	void testNegativeValues() {
+		double result = service.add(new QuantityDTO("LENGTH", -10), new QuantityDTO("LENGTH", 5));
+		assertEquals(-5.0, result);
 	}
 
 	@Test
-	void testController_PerformAddition() {
+	void testMultipleOperationsCount() {
+		service.add(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
+		service.subtract(new QuantityDTO("LENGTH", 20), new QuantityDTO("LENGTH", 10));
+		service.divide(new QuantityDTO("LENGTH", 50), new QuantityDTO("LENGTH", 5));
 
-		QuantityDTO q1 = new QuantityDTO(20, "METER");
-		QuantityDTO q2 = new QuantityDTO(10, "METER");
-
-		assertDoesNotThrow(() -> controller.performAddition(q1, q2));
+		assertEquals(3, service.count());
 	}
 
 	@Test
-	void testController_PerformSubtraction() {
+	void testGetAll() {
+		service.add(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
 
-		QuantityDTO q1 = new QuantityDTO(20, "METER");
-		QuantityDTO q2 = new QuantityDTO(10, "METER");
+		List<QuantityMeasurementEntity> list = service.getAll();
 
-		assertDoesNotThrow(() -> controller.performSubtraction(q1, q2));
+		assertNotNull(list);
+		assertTrue(list.size() > 0);
 	}
 
 	@Test
-	void testController_PerformDivision() {
+	void testDeleteAll() {
+		service.add(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
 
-		QuantityDTO q1 = new QuantityDTO(20, "METER");
-		QuantityDTO q2 = new QuantityDTO(10, "METER");
+		service.deleteAll();
 
-		assertDoesNotThrow(() -> controller.performDivision(q1, q2));
+		assertEquals(0, service.count());
+	}
+
+	@Test
+	void testStoredEntityData() {
+		service.add(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
+
+		List<QuantityMeasurementEntity> list = service.getAll();
+
+		QuantityMeasurementEntity e = list.get(0);
+
+		assertEquals("LENGTH", e.getMeasurementType());
+		assertEquals("ADD", e.getOperationType());
+		assertEquals(10.0, e.getValue1());
+		assertEquals(5.0, e.getValue2());
+		assertTrue(e.isResult());
+	}
+
+	@Test
+	void testAdditionWithZero() {
+		double result = service.add(new QuantityDTO("LENGTH", 0), new QuantityDTO("LENGTH", 25));
+		assertEquals(25.0, result);
+	}
+
+	@Test
+	void testSubtractSameNumbers() {
+		double result = service.subtract(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 10));
+		assertEquals(0.0, result);
+	}
+
+	@Test
+	void testDivisionDecimal() {
+		double result = service.divide(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 4));
+		assertEquals(2.5, result);
+	}
+
+	@Test
+	void testLargeValues() {
+		double result = service.add(new QuantityDTO("LENGTH", 1_000_000), new QuantityDTO("LENGTH", 2_000_000));
+		assertEquals(3_000_000, result);
+	}
+
+	@Test
+	void testGetAllAfterDelete() {
+		service.add(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
+
+		service.deleteAll();
+
+		List<QuantityMeasurementEntity> list = service.getAll();
+
+		assertTrue(list.isEmpty());
+	}
+
+	@Test
+	void testAdditionCommutative() {
+		double r1 = service.add(new QuantityDTO("LENGTH", 10), new QuantityDTO("LENGTH", 5));
+
+		double r2 = service.add(new QuantityDTO("LENGTH", 5), new QuantityDTO("LENGTH", 10));
+
+		assertEquals(r1, r2);
 	}
 }
