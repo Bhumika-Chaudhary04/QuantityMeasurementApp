@@ -1,18 +1,18 @@
 package com.apps.quantitymeasurement.units;
 
-public enum LengthUnit implements IMeasurable {
+public enum WeightUnit implements IMeasurable {
 
-	INCHES(1.0), FEET(12.0), YARDS(36.0), CENTIMETERS(0.393701);
+	GRAM(1.0), KILOGRAM(1000.0), POUND(453.592);
 
 	private final double factor;
 
-	LengthUnit(double factor) {
+	WeightUnit(double factor) {
 		this.factor = factor;
 	}
 
 	@Override
 	public double convertToBaseUnit(double value) {
-		return value * factor;
+		return value * factor; // base = grams
 	}
 
 	@Override

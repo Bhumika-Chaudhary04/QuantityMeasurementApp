@@ -1,35 +1,19 @@
 package com.apps.quantitymeasurement.repository;
 
-import com.apps.quantitymeasurement.entity.QuantityMeasurementEntity;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.apps.quantitymeasurement.entity.Quantity;
 
-public class QuantityMeasurementCacheRepository implements IQuantityMeasurementRepository {
+public class QuantityMeasurementCacheRepository {
 
-	private static QuantityMeasurementCacheRepository instance;
+	private final Set<Quantity<?>> history = new HashSet<>();
 
-	private List<QuantityMeasurementEntity> cache = new ArrayList<>();
-
-	private QuantityMeasurementCacheRepository() {
+	public void save(Quantity<?> quantity) {
+		history.add(quantity);
 	}
 
-	public static QuantityMeasurementCacheRepository getInstance() {
-
-		if (instance == null) {
-			instance = new QuantityMeasurementCacheRepository();
-		}
-
-		return instance;
-	}
-
-	@Override
-	public void save(QuantityMeasurementEntity entity) {
-		cache.add(entity);
-	}
-
-	@Override
-	public List<QuantityMeasurementEntity> findAll() {
-		return cache;
+	public Set<Quantity<?>> findAll() {
+		return history;
 	}
 }
