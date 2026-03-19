@@ -24,41 +24,75 @@ public class QuantityMeasurementApp {
 
 	public static void main(String[] args) {
 
-		// Length
-		Quantity<LengthUnit> feet = new Quantity<>(1.0, LengthUnit.FEET);
+		System.out.println("========== QUANTITY MEASUREMENT APP ==========");
+
+		// ===== LENGTH =====
+		System.out.println("\n===== LENGTH =====");
+
+		Quantity<LengthUnit> feet = new Quantity<>(10.0, LengthUnit.FEET);
 		Quantity<LengthUnit> inches = new Quantity<>(12.0, LengthUnit.INCHES);
+
 		demonstrateEquality(feet, inches);
 		demonstrateConversion(feet, LengthUnit.INCHES);
 		demonstrateAddition(feet, inches, LengthUnit.FEET);
+		demonstrateSubtraction(feet, inches, LengthUnit.FEET);
+		demonstrateDivision(feet, new Quantity<>(2.0, LengthUnit.FEET));
 
-		// Weight
-		Quantity<WeightUnit> kg = new Quantity<>(1.0, WeightUnit.KILOGRAM);
-		Quantity<WeightUnit> gram = new Quantity<>(1000.0, WeightUnit.GRAM);
+		// ===== WEIGHT =====
+		System.out.println("\n===== WEIGHT =====");
+
+		Quantity<WeightUnit> kg = new Quantity<>(5.0, WeightUnit.KILOGRAM);
+		Quantity<WeightUnit> gram = new Quantity<>(500.0, WeightUnit.GRAM);
+
 		demonstrateEquality(kg, gram);
 		demonstrateConversion(kg, WeightUnit.GRAM);
 		demonstrateAddition(kg, gram, WeightUnit.KILOGRAM);
+		demonstrateSubtraction(kg, gram, WeightUnit.KILOGRAM);
+		demonstrateDivision(kg, new Quantity<>(2.0, WeightUnit.KILOGRAM));
 
-		// Volume
-		Quantity<VolumeUnit> litre = new Quantity<>(1.0, VolumeUnit.LITRE);
-		Quantity<VolumeUnit> ml = new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
+		// ===== VOLUME =====
+		System.out.println("\n===== VOLUME =====");
+
+		Quantity<VolumeUnit> litre = new Quantity<>(5.0, VolumeUnit.LITRE);
+		Quantity<VolumeUnit> ml = new Quantity<>(500.0, VolumeUnit.MILLILITRE);
 		Quantity<VolumeUnit> gallon = new Quantity<>(1.0, VolumeUnit.GALLON);
+
 		demonstrateEquality(litre, ml);
 		demonstrateConversion(litre, VolumeUnit.MILLILITRE);
 		demonstrateConversion(gallon, VolumeUnit.LITRE);
 		demonstrateAddition(litre, ml, VolumeUnit.LITRE);
+		demonstrateSubtraction(litre, ml, VolumeUnit.LITRE);
+		demonstrateDivision(litre, new Quantity<>(2.0, VolumeUnit.LITRE));
+
+		// Cross-unit volume operation
 		demonstrateAddition(litre, gallon, VolumeUnit.MILLILITRE);
 
-		// Temperature
+		// ===== TEMPERATURE =====
+		System.out.println("\n===== TEMPERATURE =====");
+
 		Quantity<TemperatureUnit> tempC = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
 		Quantity<TemperatureUnit> tempF = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
+
 		demonstrateEquality(tempC, tempF);
 		demonstrateConversion(tempC, TemperatureUnit.FAHRENHEIT);
 
-		// Attempt unsupported arithmetic
 		try {
-			tempC.add(new Quantity<>(50.0, TemperatureUnit.CELSIUS));
+			demonstrateAddition(tempC, new Quantity<>(10.0, TemperatureUnit.CELSIUS), TemperatureUnit.CELSIUS);
 		} catch (UnsupportedOperationException e) {
-			System.out.println(e.getMessage());
+			System.out.println("Error: " + e.getMessage());
 		}
+
+		try {
+			demonstrateSubtraction(tempC, new Quantity<>(10.0, TemperatureUnit.CELSIUS), TemperatureUnit.CELSIUS);
+		} catch (UnsupportedOperationException e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+
+		try {
+			demonstrateDivision(tempC, new Quantity<>(2.0, TemperatureUnit.CELSIUS));
+		} catch (UnsupportedOperationException e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+
 	}
 }
