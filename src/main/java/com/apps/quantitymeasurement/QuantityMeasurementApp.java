@@ -8,8 +8,11 @@ public class QuantityMeasurementApp {
 			return false;
 
 		boolean result = length1.equals(length2);
+
+		System.out.println("\n--- Equality Check ---");
 		System.out.println("Comparing: " + length1 + " and " + length2);
-		System.out.println("Are equal? " + result);
+		System.out.println("Result: They are " + (result ? "EQUAL" : "NOT EQUAL"));
+
 		return result;
 	}
 
@@ -29,7 +32,10 @@ public class QuantityMeasurementApp {
 		Length length = new Length(value, fromUnit);
 		Length converted = length.convertTo(toUnit);
 
-		System.out.println("Converted: " + length + " → " + converted);
+		System.out.println("\n--- Conversion ---");
+		System.out.println("Converting: " + length + " → " + toUnit);
+		System.out.println("Result: " + converted);
+
 		return converted;
 	}
 
@@ -37,14 +43,23 @@ public class QuantityMeasurementApp {
 	public static Length demonstrateLengthConversion(Length length, LengthUnit toUnit) {
 
 		Length converted = length.convertTo(toUnit);
-		System.out.println("Converted: " + length + " → " + converted);
+
+		System.out.println("\n--- Conversion ---");
+		System.out.println("Converting: " + length + " → " + toUnit);
+		System.out.println("Result: " + converted);
+
 		return converted;
 	}
 
 	// Demonstrate addition (default unit)
 	public static Length demonstrateLengthAddition(Length length1, Length length2) {
+
 		Length result = length1.add(length2);
-		System.out.println("Addition Result: " + result);
+
+		System.out.println("\n--- Addition ---");
+		System.out.println("Adding: " + length1 + " + " + length2);
+		System.out.println("Result: " + result);
+
 		return result;
 	}
 
@@ -52,13 +67,21 @@ public class QuantityMeasurementApp {
 	public static Length demonstrateLengthAddition(Length length1, Length length2, LengthUnit targetUnit) {
 
 		Length result = length1.add(length2, targetUnit);
-		System.out.println("Addition Result: " + result);
+
+		System.out.println("\n--- Addition ---");
+		System.out.println("Adding: " + length1 + " + " + length2 + " (in " + targetUnit + ")");
+		System.out.println("Final Result: " + result);
+
 		return result;
 	}
 
 	public static void main(String[] args) {
+
+		System.out.println("===== QUANTITY MEASUREMENT APP =====");
+
 		// Equality Test
 		demonstrateLengthComparison(1.0, LengthUnit.FEET, 12.0, LengthUnit.INCHES);
+		demonstrateLengthComparison(36.0, LengthUnit.INCHES, 1.0, LengthUnit.YARDS);
 
 		// Conversion Test
 		demonstrateLengthConversion(1.0, LengthUnit.FEET, LengthUnit.INCHES);
@@ -68,9 +91,6 @@ public class QuantityMeasurementApp {
 		Length l2 = new Length(12.0, LengthUnit.INCHES);
 
 		demonstrateLengthAddition(l1, l2, LengthUnit.FEET);
-
-		// Cross-unit equality
-		demonstrateLengthComparison(36.0, LengthUnit.INCHES, 1.0, LengthUnit.YARDS);
 
 		// Centimeter conversion
 		demonstrateLengthConversion(2.54, LengthUnit.CENTIMETERS, LengthUnit.INCHES);
