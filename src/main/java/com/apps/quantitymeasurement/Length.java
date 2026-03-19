@@ -38,6 +38,10 @@ public class Length {
 		this.unit = unit;
 	}
 
+	public double getValue() {
+		return this.value;
+	}
+
 	private double convertToBaseUnit() {
 		return unit.toBase(value);
 	}
