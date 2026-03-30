@@ -1,17 +1,19 @@
 package com.apps.quantitymeasurement.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.apps.quantitymeasurement.dto.QuantityInputDTO;
 import com.apps.quantitymeasurement.dto.QuantityMeasurementDTO;
 import com.apps.quantitymeasurement.entity.Quantity;
 import com.apps.quantitymeasurement.entity.QuantityMeasurementEntity;
+import com.apps.quantitymeasurement.entity.User;
 import com.apps.quantitymeasurement.repository.QuantityMeasurementRepository;
+import com.apps.quantitymeasurement.repository.UserRepository;
 import com.apps.quantitymeasurement.units.IMeasurable;
 import com.apps.quantitymeasurement.utils.QuantityConverter;
 
@@ -20,8 +22,23 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 	private static final Logger logger = LoggerFactory.getLogger(QuantityMeasurementServiceImpl.class);
 
-	@Autowired
-	private QuantityMeasurementRepository repository;
+	private final QuantityMeasurementRepository repository;
+	private final UserRepository userRepository;
+
+	public QuantityMeasurementServiceImpl(QuantityMeasurementRepository repository, UserRepository userRepository) {
+		this.repository = repository;
+		this.userRepository = userRepository;
+	}
+
+	private User getCurrentUser() {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+	}
+
+	private void saveHistory(QuantityMeasurementEntity entity) {
+		entity.setUser(getCurrentUser());
+		repository.save(entity);
+	}
 
 	private void validateSameType(Quantity<? extends IMeasurable> q1, Quantity<? extends IMeasurable> q2) {
 		if (!q1.getUnit().getClass().equals(q2.getUnit().getClass())) {
@@ -29,6 +46,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public QuantityMeasurementDTO add(QuantityInputDTO input) {
 		try {
@@ -39,17 +57,18 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 			double result = q1.add(q2, q1.getUnit()).getValue();
 
-			repository.save(new QuantityMeasurementEntity("ADD", q1.getValue(), q2.getValue(), result));
+			saveHistory(new QuantityMeasurementEntity("ADD", q1.getValue(), q2.getValue(), result));
 
 			return new QuantityMeasurementDTO("ADD", result);
 
 		} catch (Exception e) {
 			logger.error("ADD failed: {}", e.getMessage());
-			repository.save(new QuantityMeasurementEntity("ADD", e.getMessage()));
+			saveHistory(new QuantityMeasurementEntity("ADD", e.getMessage()));
 			return new QuantityMeasurementDTO("ADD", e.getMessage());
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public QuantityMeasurementDTO subtract(QuantityInputDTO input) {
 		try {
@@ -60,17 +79,18 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 			double result = q1.subtract(q2, q1.getUnit()).getValue();
 
-			repository.save(new QuantityMeasurementEntity("SUBTRACT", q1.getValue(), q2.getValue(), result));
+			saveHistory(new QuantityMeasurementEntity("SUBTRACT", q1.getValue(), q2.getValue(), result));
 
 			return new QuantityMeasurementDTO("SUBTRACT", result);
 
 		} catch (Exception e) {
 			logger.error("SUBTRACT failed: {}", e.getMessage());
-			repository.save(new QuantityMeasurementEntity("SUBTRACT", e.getMessage()));
+			saveHistory(new QuantityMeasurementEntity("SUBTRACT", e.getMessage()));
 			return new QuantityMeasurementDTO("SUBTRACT", e.getMessage());
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Double divide(QuantityInputDTO input) {
 		try {
@@ -79,22 +99,24 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 			validateSameType(q1, q2);
 
-			if (q2.getValue() == 0)
+			if (q2.getValue() == 0) {
 				throw new ArithmeticException("Division by zero");
+			}
 
 			double result = q1.divide(q2);
 
-			repository.save(new QuantityMeasurementEntity("DIVIDE", q1.getValue(), q2.getValue(), result));
+			saveHistory(new QuantityMeasurementEntity("DIVIDE", q1.getValue(), q2.getValue(), result));
 
 			return result;
 
 		} catch (Exception e) {
 			logger.error("DIVIDE failed: {}", e.getMessage());
-			repository.save(new QuantityMeasurementEntity("DIVIDE", e.getMessage()));
+			saveHistory(new QuantityMeasurementEntity("DIVIDE", e.getMessage()));
 			throw e;
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public QuantityMeasurementDTO convert(QuantityInputDTO input) {
 		try {
@@ -106,16 +128,18 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 			double result = q1.convertTo(target.getUnit()).getValue();
 
-			repository.save(new QuantityMeasurementEntity("CONVERT", q1.getValue(), 0, result));
+			saveHistory(new QuantityMeasurementEntity("CONVERT", q1.getValue(), 0, result));
 
 			return new QuantityMeasurementDTO("CONVERT", result);
 
 		} catch (Exception e) {
 			logger.error("CONVERT failed: {}", e.getMessage());
+			saveHistory(new QuantityMeasurementEntity("CONVERT", e.getMessage()));
 			return new QuantityMeasurementDTO("CONVERT", e.getMessage());
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public QuantityMeasurementDTO compare(QuantityInputDTO input) {
 		try {
@@ -126,23 +150,24 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 			boolean result = q1.equals(q2);
 
-			repository.save(new QuantityMeasurementEntity("COMPARE", q1.getValue(), q2.getValue(), result ? 1 : 0));
+			saveHistory(new QuantityMeasurementEntity("COMPARE", q1.getValue(), q2.getValue(), result ? 1 : 0));
 
 			return new QuantityMeasurementDTO("COMPARE", result ? 1.0 : 0.0);
 
 		} catch (Exception e) {
 			logger.error("COMPARE failed: {}", e.getMessage());
+			saveHistory(new QuantityMeasurementEntity("COMPARE", e.getMessage()));
 			return new QuantityMeasurementDTO("COMPARE", e.getMessage());
 		}
 	}
 
 	@Override
 	public List<?> getHistory() {
-		return repository.findAll();
+		return repository.findByUser(getCurrentUser());
 	}
 
 	@Override
 	public List<?> getByOperation(String operation) {
-		return repository.findByOperation(operation);
+		return repository.findByUserAndOperationIgnoreCase(getCurrentUser(), operation);
 	}
 }

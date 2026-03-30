@@ -25,6 +25,10 @@ public class QuantityMeasurementEntity {
 
 	private String errorMessage;
 
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	private User user;
+
 	public QuantityMeasurementEntity(String operation, double op1, double op2, double result) {
 		this.operation = operation;
 		this.operand1 = op1;
