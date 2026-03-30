@@ -52,6 +52,14 @@ public enum TemperatureUnit implements IMeasurable {
 
 	@Override
 	public void validateOperationSupport(String operation) {
-		throw new QuantityMeasurementException("Temperature does not support " + operation + " operation");
+		if (operation == null) {
+			return;
+		}
+
+		String op = operation.trim().toLowerCase();
+
+		if (!op.equals("convert") && !op.equals("compare")) {
+			throw new QuantityMeasurementException("Temperature does not support " + operation + " operation");
+		}
 	}
 }

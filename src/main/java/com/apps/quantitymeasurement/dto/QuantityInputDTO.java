@@ -14,4 +14,6 @@ public class QuantityInputDTO {
 	@NotNull
 	@Valid
 	private QuantityDTO thatQuantityDTO;
+
+	private String outputUnit;
 }
