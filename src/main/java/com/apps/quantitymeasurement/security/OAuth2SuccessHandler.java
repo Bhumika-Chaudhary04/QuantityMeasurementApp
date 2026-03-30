@@ -1,6 +1,8 @@
 package com.apps.quantitymeasurement.security;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -45,9 +47,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
 		String token = jwtUtil.generateToken(email);
 
-		String redirectUrl = "http://localhost:8080/login-success" + "?token=" + token + "&name=" + name + "&email="
-				+ email;
+		clearAuthenticationAttributes(request);
 
-		response.sendRedirect(redirectUrl);
+		String redirectUrl = "http://localhost:5500/dashboard.html" + "?token="
+				+ URLEncoder.encode(token, StandardCharsets.UTF_8) + "&name="
+				+ URLEncoder.encode(name, StandardCharsets.UTF_8) + "&email="
+				+ URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+		getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 	}
 }
