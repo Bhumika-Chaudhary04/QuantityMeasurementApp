@@ -1,6 +1,7 @@
 package com.apps.quantitymeasurement.service;
 
 import java.util.List;
+import java.util.Comparator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +125,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Double divide(QuantityInputDTO input) {
+	public QuantityMeasurementDTO divide(QuantityInputDTO input) {
 		try {
 			Quantity<IMeasurable> q1 = (Quantity<IMeasurable>) QuantityConverter.toEntity(input.getThisQuantityDTO());
 			Quantity<IMeasurable> q2 = (Quantity<IMeasurable>) QuantityConverter.toEntity(input.getThatQuantityDTO());
@@ -135,33 +136,20 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 				throw new ArithmeticException("Division by zero");
 			}
 
-			Quantity<IMeasurable> outputQuantity = getOutputQuantity(input);
-			double result;
-
-			if (outputQuantity != null) {
-				Quantity<IMeasurable> convertedQ1 = q1.convertTo(outputQuantity.getUnit());
-				Quantity<IMeasurable> convertedQ2 = q2.convertTo(outputQuantity.getUnit());
-
-				if (convertedQ2.getValue() == 0) {
-					throw new ArithmeticException("Division by zero");
-				}
-
-				result = convertedQ1.getValue() / convertedQ2.getValue();
-			} else {
-				result = q1.divide(q2);
-			}
+			double result = q1.divide(q2);
 
 			saveHistory(new QuantityMeasurementEntity("DIVIDE", q1.getValue(), q2.getValue(), result));
 
-			return result;
+			QuantityMeasurementDTO response = new QuantityMeasurementDTO("DIVIDE", result);
+			response.setMessage("Division completed successfully.");
+			return response;
 
 		} catch (Exception e) {
 			logger.error("DIVIDE failed: {}", e.getMessage());
 			saveHistory(new QuantityMeasurementEntity("DIVIDE", e.getMessage()));
-			throw e;
+			return new QuantityMeasurementDTO("DIVIDE", e.getMessage());
 		}
 	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public QuantityMeasurementDTO convert(QuantityInputDTO input) {
@@ -225,14 +213,35 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 			return new QuantityMeasurementDTO("COMPARE", e.getMessage());
 		}
 	}
-
 	@Override
 	public List<?> getHistory() {
-		return repository.findByUser(getCurrentUser());
+		return repository.findByUser(getCurrentUser())
+				.stream()
+				.sorted(Comparator.comparing(QuantityMeasurementEntity::getId).reversed())
+				.toList();
 	}
 
 	@Override
 	public List<?> getByOperation(String operation) {
-		return repository.findByUserAndOperationIgnoreCase(getCurrentUser(), operation);
+		return repository.findByUserAndOperationIgnoreCase(getCurrentUser(), operation)
+				.stream()
+				.sorted(Comparator.comparing(QuantityMeasurementEntity::getId).reversed())
+				.toList();
+	}
+
+	@Override
+	public void deleteAllHistory() {
+		repository.deleteAllByUser(getCurrentUser());
+	}
+	@Override
+	public void deleteHistoryById(Long id) {
+		QuantityMeasurementEntity entity = repository.findById(id)
+				.orElseThrow(() -> new RuntimeException("History item not found."));
+
+		if (entity.getUser() == null || !entity.getUser().getId().equals(getCurrentUser().getId())) {
+			throw new RuntimeException("You can delete only your own history.");
+		}
+
+		repository.delete(entity);
 	}
 }
