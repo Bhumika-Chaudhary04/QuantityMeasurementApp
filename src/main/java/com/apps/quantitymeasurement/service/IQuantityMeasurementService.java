@@ -10,7 +10,7 @@ public interface IQuantityMeasurementService {
 
 	QuantityMeasurementDTO subtract(QuantityInputDTO input);
 
-	Double divide(QuantityInputDTO input);
+	QuantityMeasurementDTO divide(QuantityInputDTO input);
 
 	QuantityMeasurementDTO convert(QuantityInputDTO input);
 
@@ -19,4 +19,8 @@ public interface IQuantityMeasurementService {
 	List<?> getHistory();
 
 	List<?> getByOperation(String operation);
+
+	void deleteAllHistory();
+
+	void deleteHistoryById(Long id);
 }
