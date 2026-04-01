@@ -1,7 +1,10 @@
 package com.apps.quantitymeasurement.security;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -24,6 +27,9 @@ public class SecurityConfig {
 	private final UserRepository userRepo;
 	private final TokenBlacklist tokenBlacklist;
 	private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
+	@Value("${app.allowed-origins}")
+	private String allowedOrigins;
 
 	public SecurityConfig(JwtUtil jwtUtil, UserRepository userRepo, TokenBlacklist tokenBlacklist,
 			OAuth2SuccessHandler oAuth2SuccessHandler) {
@@ -71,15 +77,12 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
 
-		config.setAllowedOrigins(List.of(
-				"http://localhost:5500",
-				"http://127.0.0.1:5500",
-				"http://localhost:5173",
-				"http://127.0.0.1:5173",
-				"http://localhost:4200",
-				"http://127.0.0.1:4200"
-		));
+		List<String> origins = Arrays.stream(allowedOrigins.split(","))
+				.map(String::trim)
+				.filter(origin -> !origin.isEmpty())
+				.collect(Collectors.toList());
 
+		config.setAllowedOrigins(origins);
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("Authorization"));
